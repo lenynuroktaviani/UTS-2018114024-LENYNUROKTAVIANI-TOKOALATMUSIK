@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
+
 use App\Models\Kategoris;
-use App\Models\Items;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class GroupsController extends Controller
@@ -12,24 +13,16 @@ class GroupsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-     public function index()
+    public function index()
     {
-        $kategoris = Kategoris::orderby('id', 'desc') -> paginate(3);
+        $kategoris = Kategoris::orderBy('id', 'desc')->paginate(3);
 
-        return view('kategoris.index', compact('kategoris'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        return view('kategoris.create');
-    }
-
-    /**
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar data kategoris',
+            'data' => $kategoris
+        ], 200);
+    } /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -42,13 +35,25 @@ class GroupsController extends Controller
             'description' => 'required',
         ]);
 
-        $kategori = new Kategoris;
+        $kategoris = Kategoris::create([
+            'name'=> $request->name,
+            'description' => $request->description
+            ]);
 
-        $kategori->name = $request->name;
-        $kategori->description = $request->description;
-        $kategori->save();
-
-        return redirect('/kategoris');
+            if($kategoris)
+            {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kategoris berhasil di tambahkan',
+                    'data' => $kategoris
+                ], 200);
+            }else{
+                return response()->json([
+                'success' => false,
+                'message' => 'Kategoris gagal di tambahkan',
+                'data' => $kategoris
+            ], 409);
+            }
     }
 
     /**
@@ -59,20 +64,12 @@ class GroupsController extends Controller
      */
     public function show($id)
     {
-        $kategori = Kategoris::where('id', $id)->first();
-        return view('kategoris.show', ['kategori' => $kategori]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $kategori = Kategoris::where('id', $id)->first();
-        return view('kategoris.edit', ['kategori' => $kategori]);
+        $kategori = Kategoris::where('id', $id)->first();    
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail Kategoris',
+            'data' => $kategori
+        ], 200);
     }
 
     /**
@@ -84,12 +81,21 @@ class GroupsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        Kategoris::find($id)->update([
-            'name' => $request->name,
-            'description' => $request->description
+        $request->validate([
+            'name' => 'required|unique:kategoris|max:255',
+            'description' => 'required',
         ]);
 
-        return redirect('/kategoris');
+        $g = Kategoris::find($id)->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategoris Updated',
+            'data' => $g
+        ], 200);
     }
 
     /**
@@ -99,36 +105,14 @@ class GroupsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
-        Kategoris::find($id)->delete();
-        return redirect('/kategoris');
-    }
+    {        
+        $cek = Kategoris::find($id)->delete();
 
-    public function addmember($id)
-    {
-        $kategori = Items::where('kategoris_id', '=', 0)->get();
-        $kategori = Kategoris::where('id', $id)->first();
-        return view('kategoris.addmember', ['kategori' => $kategori, 'kategori' => $kategori]);
-    }
-
-    public function updateaddmember(Request $request, $id)
-    {
-        $kategori = Items::where('id', $request->friend_id)->first();
-        Items::find($kategori->id)->update([
-            'kategoris_id' => $id
-        ]);
-
-        return redirect('/kategoris/addmember/'. $id);
-    }
-
-    public function deleteaddmember(Request $request, $id)
-    {
-
-        Items::find($id)->update([
-            'kategoris_id' => 0
-        ]);
-
-        return redirect('/kategoris');
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategoris Deleted',
+            'data' => $cek
+        ], 200);
     }
 
 }

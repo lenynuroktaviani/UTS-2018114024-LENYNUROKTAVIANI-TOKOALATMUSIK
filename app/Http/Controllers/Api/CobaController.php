@@ -16,14 +16,14 @@ class CobaController extends Controller
     public function index()
     {
         $items = Items::orderby('id', 'desc') -> paginate(3);
-
+  
         return response()->json([
             'success' => true,
-            'message' => 'Data Item',
+            'message' => 'Daftar Data Items',
             'data' => $items
         ], 200);
     }
-
+  
     /**
      * Store a newly created resource in storage.
      *
@@ -34,32 +34,32 @@ class CobaController extends Controller
     {
         $request->validate([
             'nama_barang' => 'required|unique:items|max:255',
-            'merk' => 'required',
+            'merk' => 'requiredc',
             'harga' => 'required|numeric',
         ]);
-
+  
         $items = Items::create([
             'nama_barang' => $request->nama_barang,
             'merk' => $request->merk,
             'harga' => $request->harga,
         ]);
-
+  
         if($items)
         {
             return response()->json([
                 'success' => true,
-                'message' => 'Item Berhasil Ditambahkan',
+                'message' => 'Items Berhasil Ditambahkan',
                 'data' => $items
             ], 200);
         }else{
             return response()->json([
                 'success' => false,
-                'message' => 'Item Gagal Ditambahkan',
+                'message' => 'Items Gagal Ditambahkan',
                 'data' => $items
             ], 409);
         }
     }
-
+  
     /**
      * Display the specified resource.
      *
@@ -69,6 +69,13 @@ class CobaController extends Controller
     public function show($id)
     {
         //
+        $items = Items::where('id', $id)->first();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail data teman',
+            'data' => $items
+        ], 200);
     }
 
     /**
@@ -81,6 +88,22 @@ class CobaController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $request->validate([
+            'nama_barang' => 'required|unique:items|max:255',
+            'merk' => 'required',
+            'harga' => 'required|numeric',
+        ]);
+        $f = Items::find($id)->update([
+            'nama_barang' => $request->nama_barang,
+            'merk' => $request->merk,
+            'harga' => $request->harga
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Post Updated',
+            'data' => $f
+        ], 200);
     }
 
     /**
@@ -92,5 +115,12 @@ class CobaController extends Controller
     public function destroy($id)
     {
         //
+        $cek = Items::find($id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Post Deleted',
+            'data' => $cek
+        ], 200);
     }
-} 
+}  
